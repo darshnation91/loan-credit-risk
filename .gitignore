@@ -1,0 +1,40 @@
+# Secrets — NEVER push
+.streamlit/secrets.toml
+.env
+config/local_settings.py
+
+# Virtual environment
+venv/
+
+# All data files
+data/raw/*.csv
+data/processed/*.csv
+data/exports/*.xlsx
+data/exports/*.csv
+
+# Database
+*.db
+database/
+
+# Logs
+logs/
+*.log
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# VS Code
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints/
+
+#folder structure
+project_folder_structure
