@@ -1,14 +1,16 @@
 import sys, os
 sys.path.insert(0, r'D:\Development\loan-credit-risk')
 
+from dotenv import load_dotenv
+load_dotenv()  # reads your .env file
+
 import pandas as pd
 import pyodbc
 import psycopg2
 from config.settings import PYODBC_CONN_STR
-import streamlit as st
 
 # ── Neon connection ──────────────────────────────────────────
-NEON_URL = f"postgresql://neondb_owner:{st.secrets['NEON_URL']}@ep-mute-hall-aog3a4ao.c-2.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"  # paste your full Neon URL
+NEON_URL = os.getenv("NEON_URL")  # reads from .env locally
 
 def get_cloud_conn():
     return psycopg2.connect(NEON_URL)

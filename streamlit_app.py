@@ -10,6 +10,9 @@ import psycopg2
 import streamlit as st
 from groq import Groq
 
+NEON_URL = st.secrets.get("NEON_URL") or os.getenv("NEON_URL")
+GROQ_API_KEY = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
+
 st.set_page_config(
     page_title="Loan Portfolio Intelligence",
     page_icon="🏦",
@@ -20,7 +23,7 @@ st.set_page_config(
 @st.cache_resource
 def get_groq_client():
     try:
-        key = st.secrets["GROQ_API_KEY"]
+        key = GROQ_API_KEY
     except:
         key = os.environ.get("GROQ_API_KEY", "")
     return Groq(api_key=key)
@@ -31,7 +34,7 @@ MODEL = "llama-3.3-70b-versatile"
 # ── DB connection ────────────────────────────────────────────
 def get_conn():
     try:
-        url = st.secrets["NEON_URL"]
+        url = NEON_URL
     except:
         url = os.environ.get(
             "NEON_URL",
