@@ -10,12 +10,32 @@ import psycopg2
 import streamlit as st
 from groq import Groq
 
-# ── Page config ──────────────────────────────────────────────
 st.set_page_config(
     page_title="Loan Portfolio Intelligence",
     page_icon="🏦",
     layout="wide"
 )
+
+# ── Allow Power BI iframe embedding ─────────────────────────
+st.markdown("""
+    <style>
+    /* Hide Streamlit branding when embedded */
+    #MainMenu  {visibility: hidden;}
+    header     {visibility: hidden;}
+    footer     {visibility: hidden;}
+
+    /* Remove top padding when embedded */
+    .block-container {
+        padding-top: 0.5rem;
+        padding-bottom: 0rem;
+    }
+
+    /* Fix white flash on load */
+    .stApp {
+        background-color: #ffffff;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 
 # ── Groq client ──────────────────────────────────────────────
