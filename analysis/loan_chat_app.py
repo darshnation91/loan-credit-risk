@@ -16,28 +16,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# ── Allow Power BI iframe embedding ─────────────────────────
-st.markdown("""
-    <style>
-    /* Hide Streamlit branding when embedded */
-    #MainMenu  {visibility: hidden;}
-    header     {visibility: hidden;}
-    footer     {visibility: hidden;}
-
-    /* Remove top padding when embedded */
-    .block-container {
-        padding-top: 0.5rem;
-        padding-bottom: 0rem;
-    }
-
-    /* Fix white flash on load */
-    .stApp {
-        background-color: #ffffff;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-
 # ── Groq client ──────────────────────────────────────────────
 @st.cache_resource
 def get_groq_client():
