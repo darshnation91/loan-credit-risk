@@ -2,6 +2,9 @@ import os
 import sys
 import re
 
+from dotenv import load_dotenv
+load_dotenv()  # ← reads .env file locally
+
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
@@ -10,8 +13,21 @@ import psycopg2
 import streamlit as st
 from groq import Groq
 
-NEON_URL = st.secrets.get("NEON_URL") or os.getenv("NEON_URL")
-GROQ_API_KEY = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
+st.markdown("""
+    <style>
+        iframe { display: block; }
+    </style>
+""", unsafe_allow_html=True)
+
+# Works locally (.env) AND on Hugging Face (st.secrets)
+def get_secret(key):
+    try:
+        return st.secrets[key]
+    except:
+        return os.getenv(key)
+
+NEON_URL     = get_secret("NEON_URL")
+GROQ_API_KEY = get_secret("GROQ_API_KEY")
 
 st.set_page_config(
     page_title="Loan Portfolio Intelligence",
