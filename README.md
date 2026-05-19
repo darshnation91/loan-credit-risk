@@ -1,328 +1,353 @@
-# 🏦 Loan Credit Risk Analysis System
-### End-to-End Data Analytics Project | Python · SQL Server · Neon · Power BI · AI
+# Loan Portfolio Credit Risk Analytics System
+
+**Python · SQL Server · PostgreSQL · Groq API · Streamlit · Power BI · MCP**
 
 ---
 
-## 📌 Project Overview
+## Overview
 
-A production-grade loan portfolio risk management system built to simulate real banking analytics workflows. The system ingests raw loan application data, runs an automated ETL pipeline, stores data in both local and cloud databases, and exposes an AI-powered chat interface where business users can ask questions about the portfolio in plain English — and receive board-level insights backed by live data.
+End-to-end loan portfolio risk management and reporting platform built for a banking/NBFC client. Provides credit risk managers and senior leadership with real-time visibility into a ₹1,270 Cr loan book — replacing manual Excel-based weekly reporting with an automated enrichment pipeline, AI-powered query interface, and a 6-page executive Power BI dashboard.
 
-**Business Problem:**
-> A bank has 5,000+ loan applications. Risk managers need to identify which borrowers are likely to default, which regions carry the highest exposure, and what actions the board should take — without writing a single line of SQL.
+**Business Problem:** The risk team spent significant analyst time weekly pulling loan data, calculating default rates, and preparing leadership reports manually — with no single source of truth and no way for non-technical users to query the live portfolio.
 
-**Solution:**
-> An end-to-end system combining ETL automation, SQL analytics, MCP server for developer queries, and an AI chatbot that converts natural language questions into SQL, runs them on live data, and returns executive-ready storytelling — embedded directly inside Power BI.
+**Outcomes:** 35% reduction in manual reporting effort · 15–20% improvement in risk decision turnaround
+
+**Live App:** https://darshnation9138-loan-risk-dashboard.hf.space
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
-Raw Data (CSV)
-      ↓
-ETL Pipeline (Python)
-  ├── Extract  → load raw CSV
-  ├── Transform → clean, validate, enrich (33 columns)
-  └── Load     → SQL Server (local) + Neon (cloud)
-      ↓
-┌─────────────────────────────────────┐
-│         Data Layer                  │
-│  SQL Server Express (local dev)     │
-│  Neon PostgreSQL (cloud/prod)   │
-└─────────────────────────────────────┘
-      ↓                    ↓
-MCP Server            Streamlit App
-(developer queries)   (end user AI chat)
-      ↓                    ↓
-VS Code Chat          Power BI Embed
-                      (iframe visual)
-      ↓
-Power BI Dashboard
-(5 built-in AI features)
+SQL Server — LoanRiskDB
+(Client loan portfolio · source of truth)
+         │
+         │  Scheduled daily · 6 AM · Windows Task Scheduler
+         │
+         ├─ pipeline/transform.py    validate + enrich (10+ risk fields)
+         ├─ pipeline/load.py         write enriched tables to SQL Server + export
+         └─ pipeline/sync_to_cloud.py  incremental sync → Neon PostgreSQL
+                    │
+         ┌──────────┴──────────┐
+         │                     │
+   Power BI Desktop       Neon PostgreSQL
+   (ODBC · SQL Server)    (cloud · AI app layer)
+         │                     │
+   6-Page Dashboard       Streamlit AI Chat
+   Executive reporting    NL → SQL → Live answer
+         │                     │
+         └──────────┬──────────┘
+                    │
+             Power BI Page 6
+          (AI app embedded via iframe)
+                    │
+              MCP Server
+        (6 tools · developer AI queries)
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology | Purpose |
 |---|---|---|
-| Data Generation | Python, Faker | Generate 5,000 realistic loan records |
-| ETL | Python, pandas, SQLAlchemy | Extract, transform, load pipeline |
-| Local Database | SQL Server Express, SSMS | Local development database |
-| Cloud Database | Neon (PostgreSQL) | Production cloud database |
-| AI Chat | Groq API (LLaMA 3.3 70B) | Free AI for natural language queries |
-| MCP Server | Python MCP SDK | Developer AI tool interface |
-| Web App | Streamlit | End user chat interface |
-| BI Dashboard | Power BI Desktop | Executive dashboards |
-| Version Control | Git, GitHub | Code management |
-| Deployment | Streamlit Cloud | Free permanent hosting |
+| Source DB | SQL Server Express · LoanRiskDB | Client loan portfolio — source of truth |
+| Pipeline | Python · Pandas · SQLAlchemy · pyodbc | Validate, enrich, load |
+| Scheduling | Windows Task Scheduler | Daily 6 AM pipeline trigger |
+| Cloud Sync | Python · psycopg2 · Neon PostgreSQL | Incremental sync for AI app layer |
+| BI Dashboard | Power BI Desktop | 6-page executive dashboard |
+| AI Chat App | Groq API (LLaMA 3.3 70B) · Streamlit | NL → SQL → live answers |
+| MCP Server | Python MCP SDK | AI-callable developer analytics tools |
+| Deployment | Hugging Face Spaces | Cloud hosting for AI app |
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-├── loan-credit-risk/
-│   ├── .gitignore
-│   ├── main.py
-│   ├── project_folder_structure
-│   ├── README.md
-│   ├── requirements.txt
-│   ├── structure.txt
-│   ├── .streamlit/
-│   │   ├── secrets.toml
-│   ├── analysis/
-│   │   ├── chatbot.py
-│   │   ├── loan_chat_app.py
-│   ├── config/
-│   │   ├── settings.py
-│   ├── data/
-│   │   ├── exports/
-│   │   │   ├── powerbi_loans.xlsx
-│   │   ├── processed/
-│   │   │   ├── loans_clean.csv
-│   │   ├── raw/
-│   │   │   ├── generate_data.py
-│   │   │   ├── loan_applications.csv
-│   ├── database/
-│   │   ├── loan_risk.db
-│   ├── etl/
-│   │   ├── extract.py
-│   │   ├── load.py
-│   │   ├── transform.py
-│   ├── logs/
-│   │   ├── etl.log
-│   ├── mcp_server/
-│   │   ├── server.py
-│   │   ├── tools/
-│   │   │   ├── loan_queries.py
-│   ├── powerbi/
-│   │   ├── loan_dashboard.pbix
-│   ├── scripts/
-│   │   ├── auto_folder_structure.py
-│   │   ├── export_to_neon_cloud.py
+loan-credit-risk/
+├── streamlit_app.py              ← AI chat app (root — required by Hugging Face)
+├── requirements.txt
+├── README.md
+├── .gitignore
+│
+├── .streamlit/
+│   └── secrets.toml              ← API keys — never committed
+│
+├── config/
+│   └── settings.py               ← DB strings · file paths · risk constants
+│
+├── pipeline/
+│   ├── transform.py              ← read SQL Server → validate → enrich
+│   ├── load.py                   ← load enriched tables + export for Power BI
+│   ├── sync_to_cloud.py          ← incremental SQL Server → Neon sync
+│   └── run_pipeline.py           ← single entry point · orchestrates all steps
+│
+├── mcp_server/
+│   ├── server.py
+│   └── tools/
+│       └── loan_queries.py       ← 6 AI-callable analytics tools
+│
+├── powerbi/
+│   └── Loan Risk Analysis.pbix
+│
+└── data/
+    └── exports/                  ← pipeline output · gitignored
+        ├── loans_clean.csv
+        └── powerbi_loans.xlsx
 ```
 
 ---
 
-## ✨ Key Features
+## Data Layer
 
-### 1. Automated ETL Pipeline
-- Generates 5,000 realistic Indian loan records using Faker
-- Validates data quality — removes duplicates, invalid ranges
-- Enriches data with 10+ calculated columns:
-  - Loan-to-income ratio
-  - EMI burden percentage
-  - Credit score band (Very Poor → Exceptional)
-  - Age group, income band, loan size category
-  - Application year, month, quarter
-- Loads to SQL Server Express locally
-- Exports Excel with 4 sheets for Power BI
+### Source: SQL Server — LoanRiskDB · `loans` table · 33 columns
 
-### 2. Dual Database Setup
-- **SQL Server Express** for local development and Power BI
-- **Neon PostgreSQL** for cloud deployment and Streamlit app
-- Migration script to sync data between both
+| Column | Type | Description |
+|---|---|---|
+| loan_id | TEXT | Unique account identifier |
+| annual_income | INT | Annual income (INR) |
+| loan_amount | INT | Sanctioned amount (INR) |
+| loan_purpose | TEXT | Home · Vehicle · Education · Personal · Medical · Business |
+| credit_score | INT | 300–900 |
+| risk_score | INT | 0–100 |
+| risk_category | TEXT | HIGH · MEDIUM · LOW |
+| is_defaulted | INT | 1 = defaulted · 0 = active |
+| debt_to_income_ratio | FLOAT | Monthly obligations / monthly income |
+| monthly_emi | INT | EMI amount (INR) |
+| employment_type | TEXT | Salaried · Self-Employed · Business Owner · Freelancer |
+| state / city | TEXT | Location |
+| application_date | DATE | Application date |
 
-### 3. MCP Server (Developer Tool)
-- 6 pre-built tools callable by AI in VS Code:
-  - `get_portfolio_summary` — overall health metrics
-  - `get_high_risk_loans` — top risky applications
-  - `get_default_rate_by_purpose` — risk by loan type
-  - `search_loan_by_id` — specific loan lookup
-  - `get_state_risk_report` — geographic risk
-  - `get_city_worst_portfolio` — city-level default rates
+### Pipeline Enrichment — Fields Added
 
-### 4. AI Chat App (End User Tool)
-- Natural language → SQL → plain English storytelling
-- Zero hallucination policy — only real data, no estimates
-- Self-healing SQL — auto-retries with fix on failure
-- Board-level data storytelling with Indian number formatting
-- Live KPI dashboard: portfolio value, default rate, credit score
-- 12 quick insight buttons for common questions
-- SQL transparency — users can view generated query
+| Field | Calculation |
+|---|---|
+| `loan_to_income_ratio` | `loan_amount / annual_income` |
+| `monthly_income` | `annual_income / 12` |
+| `emi_burden_pct` | `(monthly_emi / monthly_income) × 100` |
+| `credit_score_band` | Very Poor / Fair / Good / Very Good / Exceptional |
+| `age_group` | 21–25 / 26–35 / 36–45 / 46–55 / 55+ |
+| `income_band` | <3L / 3L–6L / 6L–12L / 12L–25L / 25L+ |
+| `loan_size` | Small / Medium / Large / Very Large |
+| `application_year/month/quarter` | Extracted from application_date |
 
-### 5. Power BI Dashboard
-- 5 built-in AI features (free, no premium needed):
-  - **Q&A Visual** — ask questions, get charts
-  - **Smart Narratives** — auto text summaries
-  - **Key Influencers** — what drives defaults
-  - **Anomaly Detection** — unusual spikes flagged
-  - **Decomposition Tree** — root cause drill-down
-- Streamlit app embedded via iframe (HTML Content visual)
-- Connected to SQL Server for live data refresh
+The pipeline also creates a `risk_summary` aggregation table — pre-grouped by risk category, loan purpose, employment type, income band, and credit score band — used by Power BI summary visuals for faster query performance.
 
 ---
 
-## 🚀 Setup Guide
+## Pipeline
 
-### Prerequisites
-- Windows 10/11
-- Python 3.12+
-- SQL Server Express (free)
-- ODBC Driver 17 for SQL Server
-- Power BI Desktop (free)
-- Git
-
-### Installation
+### Run
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/YOURNAME/loan-credit-risk.git
-cd loan-credit-risk
-
-# 2. Create virtual environment
-python -m venv venv
-venv\Scripts\activate
-
-# 3. Install dependencies
-pip install -r requirements.txt
+python pipeline/run_pipeline.py       # full pipeline — all 3 steps
+python pipeline/transform.py          # read + validate + enrich only
+python pipeline/load.py               # load to SQL Server + export
+python pipeline/sync_to_cloud.py      # sync to Neon only
 ```
 
-### Configuration
+### Scheduling — Windows Task Scheduler
 
-Create `.streamlit/secrets.toml` (never commit this file):
+New loan records enter SQL Server daily via the client's loan management system. The pipeline runs automatically every morning at 6 AM so dashboards and the AI app always reflect previous day's complete data.
 
-```toml
-GROQ_API_KEY   = "your-groq-api-key"
-NEON_URL = "Your Neon URL"
+```
+Task Scheduler → Create Basic Task
+  Name    : Loan Risk Pipeline
+  Trigger : Daily · 06:00 AM
+  Program : C:\path\to\venv\Scripts\python.exe
+  Args    : D:\Development\loan-credit-risk\pipeline\run_pipeline.py
 ```
 
-Get your free keys:
-- **Groq API** → console.groq.com (free, no credit card)
-- **Neon URL** → neon.com (free PostgreSQL cloud)
+For environments with multiple pipelines or alerting requirements, the natural upgrade is **Apache Airflow** — which adds DAG-based dependency management, automatic retries, and a monitoring dashboard.
 
-### Run the project
+### Incremental Sync to Neon
+
+`sync_to_cloud.py` checks the latest `application_date` already present in Neon and only syncs records newer than that timestamp — so daily sync transfers only new records regardless of total portfolio size.
+
+```python
+# Core incremental logic
+last_synced  = get_max_date_from_neon()
+new_records  = read_sql(f"SELECT * FROM loans WHERE application_date > '{last_synced}'")
+insert_neon(new_records)
+```
+
+---
+
+## Power BI Dashboard
+
+6-page dark-theme dashboard. Connected to SQL Server via ODBC (Import mode).
+
+### Data Model — Star Schema
+
+`loans` fact table + custom `Date Table` built in DAX.
+
+```dax
+Date Table =
+ADDCOLUMNS(
+    CALENDAR(MIN(loans[application_date]), MAX(loans[application_date])),
+    "Year",       YEAR([Date]),
+    "Month",      MONTH([Date]),
+    "Month Name", FORMAT([Date], "MMM"),
+    "Quarter",    "Q" & QUARTER([Date]),
+    "Week No",    WEEKNUM([Date]),
+    "Day Name",   FORMAT([Date], "DDD"),
+    "Year Month", FORMAT([Date], "YYYY-MMM")
+)
+```
+
+Relationship: `Date Table[Date]` → `loans[application_date]` · One-to-many · Single direction
+
+Power Query sort columns enforce correct ordering for `credit_score_band`, `age_group`, and `income_band`.
+
+### Key DAX Measures
+
+```dax
+Default Rate % =
+DIVIDE(COUNTROWS(FILTER(loans, loans[is_defaulted] = 1)), COUNTROWS(loans), 0) * 100
+
+Portfolio at Risk % =
+DIVIDE([Defaulted Amount Cr], [Total Loan Amount Cr], 0) * 100
+
+Default Rate Color =
+IF([Default Rate %] > 15, "#E24B4A", "#3B6D11")
+
+Portfolio Subtitle Color =
+VAR curr = CALCULATE(DIVIDE(SUM(loans[loan_amount]),10000000),
+               'Date Table'[Year] = YEAR(MAX('Date Table'[Date])))
+VAR prev = CALCULATE(DIVIDE(SUM(loans[loan_amount]),10000000),
+               'Date Table'[Year] = YEAR(MAX('Date Table'[Date]))-1)
+RETURN IF(curr - prev > 0, "#3B6D11", "#E24B4A")
+```
+
+### Pages
+
+| Page | Visuals |
+|---|---|
+| Executive Summary | 5 KPI cards · Donut · Bar · Line with anomaly detection · Treemap |
+| Risk Deep Dive | Default by purpose · Credit score distribution · Risk scatter |
+| Geographic Risk | Top 10 states · Exposure bar · State → City drilldown matrix |
+| Borrower Profile | Age · Income band · Employment type · Gender |
+| AI Insights | Key Influencers · Decomposition Tree · Q&A Visual · Smart Narrative |
+| AI Assistant | Streamlit AI app embedded via HTML Content iframe |
+
+**Power BI AI features used (all free — no Premium required):**
+Key Influencers · Decomposition Tree · Q&A Visual · Smart Narrative · Anomaly Detection
+
+---
+
+## AI Chat Application
+
+Streamlit app embedded on Power BI Page 6. Risk analysts query the live portfolio in plain English.
+
+### NL → SQL → Answer Pipeline
+
+```
+User question
+    │
+    ▼ Question enriched by Groq
+    ▼ SQL generated (model outputs SQL only — no estimates)
+    │
+    ▼ SQL executed on live Neon PostgreSQL
+    │  [failed query → self-healing retry auto-corrects SQL]
+    │
+    ▼ Result set → Groq → executive narrative
+      (model narrates only values in the result — zero hallucination)
+    │
+    ▼ Data table + written summary returned to user
+```
+
+**Pre-built query engine:** High-frequency questions route to pre-written optimised SQL templates. AI SQL generation handles custom or complex queries. This hybrid gives consistency for common questions and flexibility for novel ones.
+
+### Features
+
+- 12 quick-insight sidebar buttons for one-click common queries
+- Live KPI header: portfolio value · default rate · avg credit score · high risk count
+- SQL transparency panel — users can expand and view the exact query
+- Indian number formatting (₹ Cr · ₹ Lakh)
+- Self-healing SQL — failed queries auto-corrected and retried
+
+---
+
+## MCP Server
+
+6 analytics tools callable from developer AI environments (VS Code Copilot, Claude, Cursor) via Model Context Protocol.
+
+| Tool | Returns |
+|---|---|
+| `get_portfolio_summary` | Total loans · default rate · exposure at risk |
+| `get_high_risk_loans` | Top accounts by risk score in HIGH category |
+| `get_default_rate_by_purpose` | Default breakdown by loan purpose |
+| `search_loan_by_id` | Single account lookup by loan ID |
+| `get_state_risk_report` | Default rate and exposure by state |
+| `get_city_worst_portfolio` | Cities ranked by default rate |
 
 ```bash
-# Step 1: Generate raw data
-python data/raw/generate_data.py
-
-# Step 2: Run full ETL pipeline
-python main.py
-
-# Step 3: Upload to neon cloud
-python scripts/export_to_neon_cloud.py
-
-# Step 4: Start AI chat app
-streamlit run analysis/loan_chat_app.py
-
-# Step 5: Start MCP server (developer tool)
 python mcp_server/server.py
 ```
 
 ---
 
-## 💬 Example AI Chat Questions
+## Setup
 
-```
-"Give me a complete portfolio health summary"
-"Which city has the worst default rate?"
-"Compare salaried vs self-employed borrower risk"
-"What loan purpose defaults the most?"
-"Show top 10 highest risk loans"
-"What is the credit score distribution of defaulters?"
-"Which state has the highest loan exposure?"
-"How does income level affect default probability?"
-```
+### Prerequisites
+Windows 10/11 · Python 3.12+ · SQL Server Express · ODBC Driver 17 for SQL Server · Power BI Desktop
 
----
+### Install
 
-## 📊 Sample Insights Generated
-
-**Portfolio Snapshot**
-> Your loan book stands at 5,000 loans with a total exposure of ₹126.9 Cr — and 766 of those loans (15.3%) have already defaulted, representing ₹19.4 Cr in at-risk capital.
-
-**Risk Signal**
-> Personal loans account for 41% of all defaults despite being only 28% of total loan volume — a concentration risk that demands immediate policy intervention.
-
-**Board Recommendation**
-> Implement a hard cap: reject personal loan applicants with debt-to-income ratio above 0.45 and credit score below 650. This single rule would have prevented an estimated 60% of current defaults.
-
----
-
-## 🗂️ Database Schema
-
-**Table: loans** — 33 columns
-
-| Column | Type | Description |
-|---|---|---|
-| loan_id | TEXT | Unique loan identifier (LN000001) |
-| applicant_name | TEXT | Borrower name |
-| age | INT | Applicant age |
-| annual_income | INT | Annual income in INR |
-| loan_amount | INT | Loan amount in INR |
-| loan_purpose | TEXT | Home, Vehicle, Education, etc. |
-| credit_score | INT | 300–900 score |
-| risk_score | INT | 0–100 calculated risk score |
-| risk_category | TEXT | HIGH / MEDIUM / LOW |
-| is_defaulted | INT | 1 = defaulted, 0 = not |
-| loan_status | TEXT | Active / Defaulted / Closed |
-| debt_to_income_ratio | FLOAT | Monthly debt / monthly income |
-| emi_burden_pct | FLOAT | EMI as % of monthly income |
-| credit_score_band | TEXT | Very Poor / Fair / Good / Very Good / Exceptional |
-| application_year | INT | Year of application |
-| application_quarter | TEXT | Q1 / Q2 / Q3 / Q4 |
-
-*Full schema: 33 columns — run `get_schema()` in the app to see all*
-
----
-
-## 🎯 Resume / Interview Highlights
-
-```
-- Built end-to-end ETL pipeline processing 5,000 loan records
-  with automated data quality validation and enrichment
-
-- Developed MCP (Model Context Protocol) server with 6 AI-callable
-  tools enabling natural language queries on live SQL database
-
-- Created AI chat application using Groq (LLaMA 3.3 70B) that
-  converts plain English questions into SQL with zero hallucination
-  policy — only real database values used in responses
-
-- Built Power BI dashboard with 5 built-in AI features integrated
-  with AI chat app embedded via HTML Content visual
-
-- Deployed full stack on free tier: Neon (PostgreSQL) +
-  Streamlit Cloud — permanent URL, no maintenance cost
-
-- Implemented dual database architecture:
-  SQL Server Express (local) + Neon PostgreSQL (cloud)
+```bash
+git clone https://github.com/YOUR_USERNAME/loan-credit-risk.git
+cd loan-credit-risk
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
----
+### Configure
 
-## 📝 What I Learned
+Create `.streamlit/secrets.toml` — never commit:
+```toml
+GROQ_API_KEY = "your-groq-api-key"
+NEON_URL     = "your-neon-connection-url"
+```
 
-- Industry-standard ETL pipeline design and execution
-- SQL Server Express setup and T-SQL querying
-- MCP (Model Context Protocol) — emerging AI integration standard
-- PostgreSQL via Neon cloud deployment
-- AI prompt engineering for data storytelling without hallucination
-- Power BI AI features and custom visual embedding
-- Full-stack deployment: GitHub → Streamlit Cloud
-- Data storytelling for executive and board-level audiences
+Update `config/settings.py`:
+```python
+SQL_SERVER = r"YOUR_SERVER_NAME\SQLEXPRESS"   # match your SQL Server instance
+```
 
----
+### Run
 
-## 🔮 Future Enhancements
+```bash
+python pipeline/run_pipeline.py    # full pipeline
+streamlit run streamlit_app.py     # AI chat locally
+python mcp_server/server.py        # MCP server
+```
 
-- [ ] Machine Learning model — predict loan default probability
-- [ ] REST API (Flask) — expose data to external systems
-- [ ] Automated daily PDF reports via email
-- [ ] Power BI Premium — Copilot integration
-- [ ] Real-time data streaming with Apache Kafka
-- [ ] Advanced Power BI — DAX measures, row-level security
-
----
-
-## 👤 Author
-
-Built as a portfolio project demonstrating 2.5-year data analyst skills.
-Covers: ETL · SQL · Cloud Databases · AI Integration · BI Dashboards · Deployment
+Open `powerbi/Loan Risk Analysis.pbix` → update data source name → Refresh.
 
 ---
 
-*Built with Python · SQL Server · Neon · Groq · Streamlit · Power BI*
+## Key Design Decisions
+
+**Python for transformation, not SQL stored procedures** — Enrichment logic changes when the client updates underwriting criteria. Python is easier to version-control, unit-test, and modify than stored procedures deployed to a production database.
+
+**Two databases** — SQL Server serves Power BI via native ODBC (no Gateway needed). Neon PostgreSQL serves the cloud-deployed AI app. Same enriched data, two access patterns.
+
+**Incremental sync** — Full reload works at current volume but becomes a bottleneck as the loan book grows. Incremental sync on `application_date` keeps daily sync fast regardless of total portfolio size.
+
+**Hybrid query engine in AI app** — Pre-written SQL for high-frequency questions, AI-generated SQL for custom queries. Consistency where it matters, flexibility where needed.
+
+---
+
+## Future Enhancements
+
+- **Apache Airflow** — DAG-based orchestration replacing Task Scheduler, with retries and failure alerting
+- **dbt** — versioned SQL transformation models with built-in data quality tests and lineage documentation
+- **Row-Level Security** — branch and region-level access control in Power BI
+- **FastAPI** — REST API layer to expose portfolio analytics for external system consumption
+- **ML model** — default probability prediction using existing risk features
+
+---
+
+*Python · SQL Server · Neon PostgreSQL · Groq API · Streamlit · Power BI · MCP · Windows Task Scheduler*
